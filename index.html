@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>🌸 真实花瓣 · 飘逸贺卡</title>
+    <style>
+        /* ===== 全局重置 ===== */
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            min-height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background: radial-gradient(ellipse at center bottom, #1a0b2e, #0d0518);
+            font-family: 'Segoe UI', 'PingFang SC', sans-serif;
+            padding:16px;
+            overflow:hidden;
+            -webkit-tap-highlight-color:transparent;
+            touch-action:manipulation;
+        }
+
+        /* ===== 卡片 ===== */
+        .card-wrapper {
+            perspective:1200px;
+            width:100%;
+            max-width:480px;
+            aspect-ratio:4/5.6;
+            cursor:pointer;
+            user-select:none;
+            position:relative;
+            z-index:10;
+            touch-action:manipulation;
+        }
+        .card-flip {
+            position:relative;
+            width:100%;
+            height:100%;
+            transition:transform 0.8s cubic-bezier(0.23,1,0.32,1);
+            transform-style:preserve-3d;
+            border-radius:28px;
+            box-shadow:0 20px 40px rgba(0,0,0,0.5), 0 0 0 1.5px rgba(255,215,150,0.15), 0 0 40px rgba(255,180,80,0.08);
+        }
+        .card-wrapper.flipped .card-flip { transform:rotateY(180deg); }
+        .card-face {
+            position:absolute;
+            top:0; left:0;
+            width:100%; height:100%;
+            border-radius:28px;
+            backface-visibility:hidden;
+            -webkit-backface-visibility:hidden;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            padding:24px 20px;
+            text-align:center;
+        }
+        .card-front {
+            background: linear-gradient(145deg, #fce9d8, #f7d5b0);
+            background-image: radial-gradient(circle at 20% 30%, rgba(255,245,220,0.7) 0%, transparent 40%),
+                              radial-gradient(circle at 80% 70%, rgba(255,200,150,0.5) 0%, transparent 45%),
+                              linear-gradient(145deg, #fce9d8, #f7d5b0);
+            border:2px solid rgba(255,220,180,0.5);
+            box-shadow:inset 0 0 60px rgba(255,200,150,0.15);
+            transform:rotateY(0deg);
+            z-index:2;
+            position:relative; /* 为人像定位提供参照 */
+        }
+        .card-front::before {
+            content:'';
+            position:absolute;
+            top:-20%; left:-20%;
+            width:140%; height:140%;
+            background:radial-gradient(circle at 30% 25%, rgba(255,235,200,0.3), transparent 60%);
+            pointer-events:none;
+        }
+        .front-content {
+            position:relative;
+            z-index:2;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:8px;
+            width:100%;
+            height:100%;
+            justify-content:center;
+        }
+        .front-icon { font-size:54px; line-height:1; margin-bottom:2px; filter:drop-shadow(0 4px 10px rgba(180,100,40,0.2)); animation:float 3.5s ease-in-out infinite; }
+        .front-title { font-size:clamp(1.8rem,10vw,3.2rem); font-weight:700; color:#3d1f0c; letter-spacing:4px; background:linear-gradient(135deg,#5a2e1a,#3d1f0c); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .front-sub { font-size:clamp(0.8rem,2.5vw,1.1rem); color:#6b3f28; letter-spacing:4px; font-weight:300; opacity:0.8; margin-top:-2px; border-top:1px solid rgba(90,46,26,0.2); padding-top:10px; width:70%; }
+        .front-hint {
+            position:absolute;
+            bottom:24px;
+            font-size:0.75rem;
+            color:#8b5e44;
+            background:rgba(255,235,210,0.7);
+            backdrop-filter:blur(4px);
+            -webkit-backdrop-filter:blur(4px);
+            padding:6px 18px;
+            border-radius:40px;
+            border:1px solid rgba(255,210,170,0.5);
+            letter-spacing:2px;
+            font-weight:300;
+            animation:pulse-hint 2.2s ease-in-out infinite;
+            z-index:5;
+            white-space:nowrap;
+        }
+
+        /* ===== 封面人像（左下角） ===== */
+        .portrait-wrapper {
+            position:absolute;
+            bottom:20px;
+            left:20px;
+            z-index:6;
+            width:clamp(70px, 20vw, 120px);
+            height:clamp(70px, 20vw, 120px);
+            border-radius:50%;
+            overflow:hidden;
+            box-shadow:0 8px 24px rgba(0,0,0,0.25), 0 0 0 3px rgba(255,215,180,0.4);
+            background: rgba(255,215,180,0.2);
+            transition:transform 0.3s ease;
+        }
+        .portrait-wrapper:hover { transform:scale(1.05); }
+        .portrait-wrapper img {
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            display:block;
+        }
+        .portrait-wrapper .placeholder {
+            width:100%;
+            height:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background: linear-gradient(135deg, #f7d5b0, #fce9d8);
+            color:#8b5e44;
+            font-size:12px;
+            font-weight:300;
+            text-align:center;
+            line-height:1.2;
+            padding:4px;
+        }
+
+        .card-back {
+            background: linear-gradient(160deg, #fdf6ed, #f5e3d0);
+            background-image: radial-gradient(circle at 70% 20%, rgba(255,230,200,0.6) 0%, transparent 50%),
+                              radial-gradient(circle at 30% 85%, rgba(255,200,160,0.4) 0%, transparent 45%),
+                              linear-gradient(160deg, #fdf6ed, #f5e3d0);
+            border:2px solid rgba(255,210,170,0.4);
+            transform:rotateY(180deg);
+            box-shadow:inset 0 0 40px rgba(200,150,110,0.1);
+            justify-content:center;
+            padding:28px 20px;
+        }
+        .card-back::before {
+            content:'✦ ✦ ✦';
+            position:absolute;
+            top:20px; left:50%;
+            transform:translateX(-50%);
+            font-size:12px;
+            letter-spacing:10px;
+            color:rgba(160,110,80,0.2);
+            pointer-events:none;
+        }
+        .back-content {
+            position:relative;
+            z-index:3;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:12px;
+            width:100%;
+            height:100%;
+            justify-content:center;
+        }
+        .back-greeting { font-size:clamp(1.8rem,6vw,2.8rem); font-weight:700; color:#3d1f0c; line-height:1.2; letter-spacing:2px; background:linear-gradient(135deg,#5a2e1a,#7a4a2e); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .back-message { font-size:clamp(0.9rem,2.2vw,1.15rem); color:#4f3220; line-height:1.8; max-width:92%; font-weight:400; letter-spacing:0.5px; padding:4px 0; }
+        .back-message span { display:inline-block; background:rgba(255,215,180,0.3); padding:0 6px; border-radius:4px; font-weight:500; }
+        .back-signature { font-size:clamp(0.8rem,2vw,1rem); color:#7a4a2e; font-weight:300; letter-spacing:3px; margin-top:4px; border-top:1px solid rgba(90,46,26,0.15); padding-top:12px; width:60%; }
+        .back-emoji-line { font-size:24px; letter-spacing:8px; margin-top:2px; filter:drop-shadow(0 2px 6px rgba(180,100,40,0.1)); }
+
+        @keyframes float {
+            0%,100% { transform:translateY(0px) rotate(-2deg); }
+            50% { transform:translateY(-8px) rotate(2deg); }
+        }
+        @keyframes pulse-hint {
+            0%,100% { opacity:0.7; transform:scale(1); }
+            50% { opacity:1; transform:scale(1.05); }
+        }
+
+        /* ===== 开关 ===== */
+        .toggle-container {
+            position:fixed;
+            bottom:30px;
+            left:50%;
+            transform:translateX(-50%);
+            z-index:9999;
+            display:flex;
+            align-items:center;
+            gap:12px;
+            background:rgba(30,15,40,0.7);
+            backdrop-filter:blur(8px);
+            -webkit-backdrop-filter:blur(8px);
+            padding:8px 16px 8px 20px;
+            border-radius:40px;
+            border:1px solid rgba(255,215,180,0.2);
+            box-shadow:0 8px 20px rgba(0,0,0,0.3);
+            user-select:none;
+            touch-action:manipulation;
+            pointer-events:auto !important;
+        }
+        .toggle-label {
+            color:rgba(255,235,210,0.8);
+            font-size:0.85rem;
+            font-weight:300;
+            letter-spacing:1px;
+            pointer-events:none;
+        }
+        .toggle-switch {
+            width:48px;
+            height:26px;
+            background:rgba(255,255,255,0.2);
+            border-radius:30px;
+            position:relative;
+            cursor:pointer;
+            transition:background 0.3s;
+            border:1px solid rgba(255,215,180,0.3);
+            flex-shrink:0;
+            touch-action:manipulation;
+            pointer-events:auto !important;
+        }
+        .toggle-switch.active {
+            background:rgba(255,150,180,0.6);
+            border-color:rgba(255,150,180,0.7);
+        }
+        .toggle-switch .toggle-knob {
+            width:20px;
+            height:20px;
+            background:#fff;
+            border-radius:50%;
+            position:absolute;
+            top:2px;
+            left:2px;
+            transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+            box-shadow:0 2px 6px rgba(0,0,0,0.3);
+            pointer-events:none;
+        }
+        .toggle-switch.active .toggle-knob {
+            transform:translateX(22px);
+            background:#ffe0ec;
+        }
+        .toggle-status {
+            color:rgba(255,235,210,0.6);
+            font-size:0.7rem;
+            font-weight:300;
+            min-width:32px;
+            text-align:center;
+            pointer-events:none;
+        }
+
+        /* ===== 涟漪 ===== */
+        .ripple {
+            position:fixed;
+            border-radius:50%;
+            background:rgba(255,215,150,0.25);
+            border:1px solid rgba(255,215,150,0.15);
+            transform:scale(0);
+            animation:rippleAnim 0.8s ease-out forwards;
+            pointer-events:none;
+            z-index:0;
+        }
+        @keyframes rippleAnim {
+            to { transform:scale(4); opacity:0; }
+        }
+
+        /* ===== 画布（花瓣层） ===== */
+        #petal-canvas {
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            pointer-events:none;
+            z-index:1;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width:480px) {
+            body { padding:10px; }
+            .card-wrapper { max-width:100%; aspect-ratio:4/5.8; }
+            .card-face { padding:18px 14px; border-radius:22px; }
+            .front-hint { font-size:0.65rem; padding:5px 14px; bottom:16px; white-space:nowrap; }
+            .back-message { max-width:98%; font-size:0.9rem; line-height:1.7; }
+            .back-emoji-line { font-size:20px; letter-spacing:4px; }
+            .toggle-container { bottom:20px; padding:6px 14px 6px 16px; gap:8px; }
+            .toggle-label { font-size:0.7rem; }
+            .toggle-switch { width:40px; height:22px; }
+            .toggle-switch .toggle-knob { width:16px; height:16px; top:2px; left:2px; }
+            .toggle-switch.active .toggle-knob { transform:translateX(18px); }
+            .portrait-wrapper {
+                width:clamp(55px, 18vw, 90px);
+                height:clamp(55px, 18vw, 90px);
+                bottom:14px;
+                left:14px;
+            }
+        }
+        @media (max-width:380px) {
+            .front-icon { font-size:40px; }
+            .front-title { font-size:1.6rem; }
+            .back-greeting { font-size:1.6rem; }
+            .card-back::before { font-size:10px; top:14px; }
+            .portrait-wrapper {
+                width:clamp(45px, 15vw, 70px);
+                height:clamp(45px, 15vw, 70px);
+                bottom:10px;
+                left:10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 花瓣画布 -->
+    <canvas id="petal-canvas"></canvas>
+
+    <!-- 卡片 -->
+    <div class="card-wrapper" id="cardWrapper">
+        <div class="card-flip" id="cardFlip">
+            <!-- ===== 封面 ===== -->
+            <div class="card-face card-front">
+                <!-- 人像容器（左下角） -->
+                <div class="portrait-wrapper">
+                    <img src="portrait.png" alt="人像" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <div class="placeholder" style="display:none;">
+                        请将图片<br />命名为 portrait.png<br />放在同目录
+                    </div>
+                </div>
+
+                <div class="front-content">
+                    <div class="front-icon">🌸</div>
+                    <div class="front-title">春日来信</div>
+                    <div class="front-sub">· 心意贺卡 ·</div>
+                </div>
+                <div class="front-hint">✧ 轻触翻开 ✧</div>
+            </div>
+
+            <!-- ===== 反面 ===== -->
+            <div class="card-face card-back">
+                <div class="back-content">
+                    <div class="back-greeting">✦ 愿你 · 常安 ✦</div>
+                    <div class="back-message">
+                        愿你每一天都 <span>明亮</span> 而 <span>温暖</span>，<br />
+                        心中常有花木向阳，<br />
+                        所遇皆是温柔与晴朗。
+                    </div>
+                    <div class="back-emoji-line">🌿 ☀️ 🌸</div>
+                    <div class="back-signature">—— 来自远方的祝福</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 开关 -->
+    <div class="toggle-container">
+        <span class="toggle-label">🌸 花瓣</span>
+        <div class="toggle-switch active" id="toggleSwitch">
+            <div class="toggle-knob"></div>
+        </div>
+        <span class="toggle-status" id="toggleStatus">开</span>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ========== 卡片翻转 ==========
+            const wrapper = document.getElementById('cardWrapper');
+            let isFlipped = false;
+            function toggleFlip(e) {
+                isFlipped = !isFlipped;
+                wrapper.classList.toggle('flipped', isFlipped);
+                let x, y;
+                if (e && (e.clientX || e.touches)) {
+                    const touch = e.touches ? e.touches[0] : e;
+                    x = touch.clientX;
+                    y = touch.clientY;
+                } else {
+                    const rect = wrapper.getBoundingClientRect();
+                    x = rect.left + rect.width/2;
+                    y = rect.top + rect.height/2;
+                }
+                createRipple(x, y);
+            }
+            wrapper.addEventListener('click', toggleFlip);
+            wrapper.addEventListener('touchstart', function(e) {
+                if (!wrapper.dataset.touchFired) {
+                    wrapper.dataset.touchFired = 'true';
+                    toggleFlip(e);
+                    setTimeout(() => { wrapper.dataset.touchFired = ''; }, 400);
+                }
+            }, { passive: true });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === ' ' || e.key === 'Space') {
+                    e.preventDefault();
+                    const rect = wrapper.getBoundingClientRect();
+                    toggleFlip({ clientX: rect.left+rect.width/2, clientY: rect.top+rect.height/2 });
+                }
+            });
+
+            function createRipple(x, y) {
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple';
+                const size = 50;
+                ripple.style.width = size + 'px';
+                ripple.style.height = size + 'px';
+                ripple.style.left = (x - size/2) + 'px';
+                ripple.style.top = (y - size/2) + 'px';
+                document.body.appendChild(ripple);
+                ripple.addEventListener('animationend', () => ripple.remove());
+            }
+
+            // ========== 花瓣粒子系统 ==========
+            const canvas = document.getElementById('petal-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const PARTICLE_COUNT = 30;
+            let isParticleEnabled = true;
+
+            const PETAL_COLORS = [
+                { light: '#ffb7c5', dark: '#ff6b8a' },
+                { light: '#ffc1cc', dark: '#ff7e9e' },
+                { light: '#ffcad4', dark: '#ff8ba3' },
+                { light: '#fbb6c9', dark: '#f57292' },
+                { light: '#ffb3c6', dark: '#ff5e7e' },
+                { light: '#ffc8d6', dark: '#ff7d99' },
+                { light: '#ffd9e0', dark: '#ff9aad' },
+            ];
+
+            function drawPetal(ctx, size, lightColor, darkColor, rotation) {
+                ctx.save();
+                ctx.translate(0, -size * 0.08);
+                ctx.rotate(rotation);
+                const s = size;
+                ctx.beginPath();
+                ctx.moveTo(0, -s * 0.7);
+                ctx.bezierCurveTo(s*0.4, -s*0.6, s*0.7, -s*0.3, s*0.6, 0);
+                ctx.bezierCurveTo(s*0.7, s*0.15, s*0.55, s*0.35, s*0.35, s*0.45);
+                ctx.bezierCurveTo(s*0.2, s*0.6, s*0.08, s*0.7, 0, s*0.55);
+                ctx.bezierCurveTo(-s*0.08, s*0.7, -s*0.2, s*0.6, -s*0.35, s*0.45);
+                ctx.bezierCurveTo(-s*0.55, s*0.35, -s*0.7, s*0.15, -s*0.6, 0);
+                ctx.bezierCurveTo(-s*0.7, -s*0.3, -s*0.4, -s*0.6, 0, -s*0.7);
+                ctx.closePath();
+                const grad = ctx.createRadialGradient(-s*0.1, -s*0.1, s*0.1, 0, 0, s*0.9);
+                grad.addColorStop(0, lightColor);
+                grad.addColorStop(0.5, darkColor);
+                grad.addColorStop(0.8, darkColor);
+                grad.addColorStop(1, darkColor + '60');
+                ctx.fillStyle = grad;
+                ctx.fill();
+                ctx.globalAlpha = 0.2;
+                ctx.beginPath();
+                ctx.moveTo(0, -s*0.6);
+                ctx.bezierCurveTo(s*0.2, -s*0.5, s*0.4, -s*0.2, s*0.3, 0.1);
+                ctx.bezierCurveTo(s*0.2, 0.2, s*0.05, 0.25, 0, 0.15);
+                ctx.bezierCurveTo(-s*0.05, 0.25, -s*0.2, 0.2, -s*0.3, 0.1);
+                ctx.bezierCurveTo(-s*0.4, -s*0.2, -s*0.2, -s*0.5, 0, -s*0.6);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fill();
+                ctx.globalAlpha = 0.3;
+                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+                ctx.lineWidth = 0.8;
+                for (let i=0; i<6; i++) {
+                    const t=(i+1)/7;
+                    const x=t*s*0.3;
+                    const yStart=-s*0.4+t*s*0.7;
+                    const yEnd=-s*0.1+t*s*0.45;
+                    ctx.beginPath();
+                    ctx.moveTo(x, yStart);
+                    ctx.quadraticCurveTo(x*0.2, (yStart+yEnd)/2, -x*0.4, yEnd);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-x, yStart);
+                    ctx.quadraticCurveTo(-x*0.2, (yStart+yEnd)/2, x*0.4, yEnd);
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 0.2;
+                ctx.strokeStyle = 'rgba(255,200,180,0.4)';
+                ctx.lineWidth = 1.2;
+                ctx.beginPath();
+                ctx.moveTo(0, -s*0.5);
+                ctx.quadraticCurveTo(s*0.05, 0, 0, s*0.4);
+                ctx.stroke();
+                ctx.globalAlpha = 0.15;
+                for (let i=0; i<14; i++) {
+                    const angle=Math.random()*2*Math.PI;
+                    const rad=Math.random()*s*0.3;
+                    const xSpot=Math.cos(angle)*rad;
+                    const ySpot=Math.sin(angle)*rad*0.5-s*0.05;
+                    ctx.beginPath();
+                    ctx.arc(xSpot, ySpot, 0.8+Math.random()*1.8, 0, 2*Math.PI);
+                    ctx.fillStyle='rgba(255,220,180,0.4)';
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            class Particle {
+                constructor() { this.reset(true); }
+                reset(init) {
+                    this.x=Math.random()*width;
+                    this.y=init?Math.random()*height:-10-Math.random()*50;
+                    this.size=10+Math.random()*14;
+                    const idx=Math.floor(Math.random()*PETAL_COLORS.length);
+                    this.lightColor=PETAL_COLORS[idx].light;
+                    this.darkColor=PETAL_COLORS[idx].dark;
+                    this.speedX=(Math.random()-0.5)*0.3;
+                    this.speedY=0.3+Math.random()*0.8;
+                    this.rotation=Math.random()*Math.PI*2;
+                    this.rotSpeed=(Math.random()-0.5)*0.025;
+                    this.opacity=0.7+Math.random()*0.3;
+                    this.opacitySpeed=(Math.random()-0.5)*0.004;
+                    this.wobbleAmp=0.6+Math.random()*0.8;
+                    this.wobbleFreq=0.015+Math.random()*0.02;
+                    this.phase=Math.random()*Math.PI*2;
+                    this.windOffset=0;
+                    this.windTimer=0;
+                    this.windInterval=100+Math.random()*150;
+                }
+                update() {
+                    this.windTimer++;
+                    if (this.windTimer>this.windInterval) {
+                        this.windTimer=0;
+                        this.windInterval=100+Math.random()*150;
+                        this.windOffset=(Math.random()-0.5)*0.8;
+                    }
+                    this.phase+=this.wobbleFreq;
+                    const wobbleX=Math.sin(this.phase)*this.wobbleAmp*0.4;
+                    this.x+=this.speedX+wobbleX+this.windOffset*0.3;
+                    this.speedY+=(Math.random()-0.5)*0.02;
+                    this.speedY=Math.max(0.2, Math.min(1.2, this.speedY));
+                    this.y+=this.speedY;
+                    this.rotation+=this.rotSpeed;
+                    this.opacity+=this.opacitySpeed;
+                    if (this.opacity>0.95||this.opacity<0.3) this.opacitySpeed*=-1;
+                    if (this.y>height+50||this.x<-60||this.x>width+60) {
+                        this.reset(false);
+                        this.y=-10-Math.random()*30;
+                        this.x=Math.random()*width;
+                    }
+                }
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha=this.opacity*0.85;
+                    ctx.translate(this.x, this.y);
+                    drawPetal(ctx, this.size, this.lightColor, this.darkColor, this.rotation);
+                    ctx.restore();
+                }
+            }
+
+            function initCanvas() {
+                width=window.innerWidth;
+                height=window.innerHeight;
+                canvas.width=width;
+                canvas.height=height;
+                particles=[];
+                for (let i=0; i<PARTICLE_COUNT; i++) particles.push(new Particle());
+            }
+
+            function drawStars() {
+                if (!drawStars.cache) {
+                    const stars=[];
+                    for (let i=0; i<40; i++) {
+                        stars.push({x:Math.random()*width, y:Math.random()*height, r:0.5+Math.random()*1.0, a:0.1+Math.random()*0.15});
+                    }
+                    drawStars.cache=stars;
+                }
+                const stars=drawStars.cache;
+                for (let s of stars) {
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, 2*Math.PI);
+                    ctx.fillStyle=`rgba(255,240,220,${s.a})`;
+                    ctx.fill();
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0,0,width,height);
+                drawStars();
+                if (isParticleEnabled) {
+                    for (let p of particles) { p.update(); p.draw(); }
+                }
+                requestAnimationFrame(animate);
+            }
+
+            // ===== 开关 =====
+            const toggleSwitch = document.getElementById('toggleSwitch');
+            const toggleStatus = document.getElementById('toggleStatus');
+            function toggleParticles(e) {
+                e.stopPropagation();
+                isParticleEnabled = !isParticleEnabled;
+                toggleSwitch.classList.toggle('active', isParticleEnabled);
+                toggleStatus.textContent = isParticleEnabled ? '开' : '关';
+                if (!isParticleEnabled) {
+                    for (let p of particles) { p.y=-200-Math.random()*300; p.x=Math.random()*width; }
+                } else {
+                    for (let p of particles) { p.reset(false); p.y=-10-Math.random()*30; p.x=Math.random()*width; }
+                }
+            }
+            toggleSwitch.addEventListener('click', toggleParticles);
+            toggleSwitch.addEventListener('touchstart', function(e){ e.preventDefault(); toggleParticles(e); }, {passive:false});
+            document.querySelector('.toggle-container').addEventListener('click', function(e) {
+                if (e.target===this || e.target.classList.contains('toggle-label') || e.target.classList.contains('toggle-status')) {
+                    toggleSwitch.dispatchEvent(new Event('click'));
+                }
+            });
+
+            let resizeTimer;
+            window.addEventListener('resize', ()=>{
+                clearTimeout(resizeTimer);
+                resizeTimer=setTimeout(()=>{ initCanvas(); },200);
+            });
+
+            initCanvas();
+            animate();
+            console.log('🌸 真实花瓣贺卡已启动，人像请放入 portrait.png');
+        })();
+    </script>
+</body>
+</html>
