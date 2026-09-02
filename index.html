@@ -66,7 +66,7 @@
             box-shadow:inset 0 0 60px rgba(255,200,150,0.15);
             transform:rotateY(0deg);
             z-index:2;
-            position:relative; /* 为人像定位提供参照 */
+            position:relative;
         }
         .card-front::before {
             content:'';
@@ -276,7 +276,7 @@
             to { transform:scale(4); opacity:0; }
         }
 
-        /* ===== 画布（花瓣层） ===== */
+        /* ===== 画布（五角星层） ===== */
         #petal-canvas {
             position:fixed;
             top:0;
@@ -323,7 +323,7 @@
 </head>
 <body>
 
-    <!-- 花瓣画布 -->
+    <!-- 五角星画布 -->
     <canvas id="petal-canvas"></canvas>
 
     <!-- 卡片 -->
@@ -352,7 +352,7 @@
                 <div class="back-content">
                     <div class="back-greeting">✦ 愿您·常安 ✦</div>
                     <div class="back-message">
-                        老师，是您带我跨了整个“十四五规划”，
+                        老师，是您带我跨了整个"十四五规划"，
                         愿您每一天都明亮而温暖，<br />
                         心中常有花木向阳，<br />
                         所遇皆是温柔与晴朗。
@@ -366,7 +366,7 @@
 
     <!-- 开关 -->
     <div class="toggle-container">
-        <span class="toggle-label">🌸 花瓣</span>
+        <span class="toggle-label">⭐ 星星</span>
         <div class="toggle-switch active" id="toggleSwitch">
             <div class="toggle-knob"></div>
         </div>
@@ -423,7 +423,7 @@
                 ripple.addEventListener('animationend', () => ripple.remove());
             }
 
-            // ========== 花瓣粒子系统 ==========
+            // ========== 五角星粒子系统 ==========
             const canvas = document.getElementById('petal-canvas');
             const ctx = canvas.getContext('2d');
             let width, height;
@@ -431,166 +431,167 @@
             const PARTICLE_COUNT = 30;
             let isParticleEnabled = true;
 
-            const PETAL_COLORS = [
-                { light: '#ffb7c5', dark: '#ff6b8a' },
-                { light: '#ffc1cc', dark: '#ff7e9e' },
-                { light: '#ffcad4', dark: '#ff8ba3' },
-                { light: '#fbb6c9', dark: '#f57292' },
-                { light: '#ffb3c6', dark: '#ff5e7e' },
-                { light: '#ffc8d6', dark: '#ff7d99' },
-                { light: '#ffd9e0', dark: '#ff9aad' },
+            // 五角星配色 —— 金色 / 暖黄 / 亮橙
+            const STAR_COLORS = [
+                { light: '#fcd34d', dark: '#f59e0b' },
+                { light: '#fbbf24', dark: '#d97706' },
+                { light: '#fde68a', dark: '#f59e0b' },
+                { light: '#fcd34d', dark: '#b45309' },
+                { light: '#fef3c7', dark: '#f59e0b' },
+                { light: '#fbbf24', dark: '#b45309' },
+                { light: '#fde68a', dark: '#d97706' },
+                { light: '#fcd34d', dark: '#ea580c' },
             ];
 
-            function drawPetal(ctx, size, lightColor, darkColor, rotation) {
+            // ===== 绘制单个五角星 =====
+            function drawStar(ctx, size, lightColor, darkColor, rotation) {
                 ctx.save();
-                ctx.translate(0, -size * 0.08);
                 ctx.rotate(rotation);
-                const s = size;
+                const outer = size * 0.5;
+                const inner = outer * 0.4;
+                const points = 5;
+                let rot = -Math.PI / 2;
+
+                // 主星形路径
                 ctx.beginPath();
-                ctx.moveTo(0, -s * 0.7);
-                ctx.bezierCurveTo(s*0.4, -s*0.6, s*0.7, -s*0.3, s*0.6, 0);
-                ctx.bezierCurveTo(s*0.7, s*0.15, s*0.55, s*0.35, s*0.35, s*0.45);
-                ctx.bezierCurveTo(s*0.2, s*0.6, s*0.08, s*0.7, 0, s*0.55);
-                ctx.bezierCurveTo(-s*0.08, s*0.7, -s*0.2, s*0.6, -s*0.35, s*0.45);
-                ctx.bezierCurveTo(-s*0.55, s*0.35, -s*0.7, s*0.15, -s*0.6, 0);
-                ctx.bezierCurveTo(-s*0.7, -s*0.3, -s*0.4, -s*0.6, 0, -s*0.7);
+                for (let i = 0; i < points * 2; i++) {
+                    const r = i % 2 === 0 ? outer : inner;
+                    const angle = rot + (i / (points * 2)) * Math.PI * 2;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
                 ctx.closePath();
-                const grad = ctx.createRadialGradient(-s*0.1, -s*0.1, s*0.1, 0, 0, s*0.9);
+
+                // 渐变填充
+                const grad = ctx.createRadialGradient(-size*0.1, -size*0.1, size*0.05, 0, 0, size*0.7);
                 grad.addColorStop(0, lightColor);
                 grad.addColorStop(0.5, darkColor);
-                grad.addColorStop(0.8, darkColor);
-                grad.addColorStop(1, darkColor + '60');
+                grad.addColorStop(0.85, darkColor);
+                grad.addColorStop(1, darkColor + '80');
                 ctx.fillStyle = grad;
                 ctx.fill();
-                ctx.globalAlpha = 0.2;
-                ctx.beginPath();
-                ctx.moveTo(0, -s*0.6);
-                ctx.bezierCurveTo(s*0.2, -s*0.5, s*0.4, -s*0.2, s*0.3, 0.1);
-                ctx.bezierCurveTo(s*0.2, 0.2, s*0.05, 0.25, 0, 0.15);
-                ctx.bezierCurveTo(-s*0.05, 0.25, -s*0.2, 0.2, -s*0.3, 0.1);
-                ctx.bezierCurveTo(-s*0.4, -s*0.2, -s*0.2, -s*0.5, 0, -s*0.6);
-                ctx.closePath();
-                ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fill();
-                ctx.globalAlpha = 0.3;
-                ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-                ctx.lineWidth = 0.8;
-                for (let i=0; i<6; i++) {
-                    const t=(i+1)/7;
-                    const x=t*s*0.3;
-                    const yStart=-s*0.4+t*s*0.7;
-                    const yEnd=-s*0.1+t*s*0.45;
-                    ctx.beginPath();
-                    ctx.moveTo(x, yStart);
-                    ctx.quadraticCurveTo(x*0.2, (yStart+yEnd)/2, -x*0.4, yEnd);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(-x, yStart);
-                    ctx.quadraticCurveTo(-x*0.2, (yStart+yEnd)/2, x*0.4, yEnd);
-                    ctx.stroke();
-                }
-                ctx.globalAlpha = 0.2;
-                ctx.strokeStyle = 'rgba(255,200,180,0.4)';
+
+                // 描边 (柔和发光)
+                ctx.shadowColor = darkColor + '60';
+                ctx.shadowBlur = size * 0.3;
+                ctx.strokeStyle = 'rgba(255,240,200,0.35)';
                 ctx.lineWidth = 1.2;
-                ctx.beginPath();
-                ctx.moveTo(0, -s*0.5);
-                ctx.quadraticCurveTo(s*0.05, 0, 0, s*0.4);
                 ctx.stroke();
-                ctx.globalAlpha = 0.15;
-                for (let i=0; i<14; i++) {
-                    const angle=Math.random()*2*Math.PI;
-                    const rad=Math.random()*s*0.3;
-                    const xSpot=Math.cos(angle)*rad;
-                    const ySpot=Math.sin(angle)*rad*0.5-s*0.05;
-                    ctx.beginPath();
-                    ctx.arc(xSpot, ySpot, 0.8+Math.random()*1.8, 0, 2*Math.PI);
-                    ctx.fillStyle='rgba(255,220,180,0.4)';
-                    ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // 高光：内部小星形或光晕
+                ctx.globalAlpha = 0.25;
+                ctx.beginPath();
+                for (let i = 0; i < points * 2; i++) {
+                    const r = i % 2 === 0 ? outer * 0.45 : inner * 0.5;
+                    const angle = rot + (i / (points * 2)) * Math.PI * 2;
+                    const x = Math.cos(angle) * r;
+                    const y = Math.sin(angle) * r;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
                 }
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(255,255,240,0.4)';
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                // 中心小亮点
+                ctx.globalAlpha = 0.2;
+                const grad2 = ctx.createRadialGradient(0, 0, 0, 0, 0, size*0.2);
+                grad2.addColorStop(0, 'rgba(255,255,240,0.7)');
+                grad2.addColorStop(1, 'rgba(255,255,240,0)');
+                ctx.fillStyle = grad2;
+                ctx.beginPath();
+                ctx.arc(0, 0, size*0.25, 0, Math.PI*2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
                 ctx.restore();
             }
 
             class Particle {
                 constructor() { this.reset(true); }
                 reset(init) {
-                    this.x=Math.random()*width;
-                    this.y=init?Math.random()*height:-10-Math.random()*50;
-                    this.size=10+Math.random()*14;
-                    const idx=Math.floor(Math.random()*PETAL_COLORS.length);
-                    this.lightColor=PETAL_COLORS[idx].light;
-                    this.darkColor=PETAL_COLORS[idx].dark;
-                    this.speedX=(Math.random()-0.5)*0.3;
-                    this.speedY=0.3+Math.random()*0.8;
-                    this.rotation=Math.random()*Math.PI*2;
-                    this.rotSpeed=(Math.random()-0.5)*0.025;
-                    this.opacity=0.7+Math.random()*0.3;
-                    this.opacitySpeed=(Math.random()-0.5)*0.004;
-                    this.wobbleAmp=0.6+Math.random()*0.8;
-                    this.wobbleFreq=0.015+Math.random()*0.02;
-                    this.phase=Math.random()*Math.PI*2;
-                    this.windOffset=0;
-                    this.windTimer=0;
-                    this.windInterval=100+Math.random()*150;
+                    this.x = Math.random() * width;
+                    this.y = init ? Math.random() * height : -10 - Math.random() * 50;
+                    this.size = 10 + Math.random() * 16;
+                    const idx = Math.floor(Math.random() * STAR_COLORS.length);
+                    this.lightColor = STAR_COLORS[idx].light;
+                    this.darkColor = STAR_COLORS[idx].dark;
+                    this.speedX = (Math.random() - 0.5) * 0.3;
+                    this.speedY = 0.3 + Math.random() * 0.8;
+                    this.rotation = Math.random() * Math.PI * 2;
+                    this.rotSpeed = (Math.random() - 0.5) * 0.025;
+                    this.opacity = 0.7 + Math.random() * 0.3;
+                    this.opacitySpeed = (Math.random() - 0.5) * 0.004;
+                    this.wobbleAmp = 0.6 + Math.random() * 0.8;
+                    this.wobbleFreq = 0.015 + Math.random() * 0.02;
+                    this.phase = Math.random() * Math.PI * 2;
+                    this.windOffset = 0;
+                    this.windTimer = 0;
+                    this.windInterval = 100 + Math.random() * 150;
                 }
                 update() {
                     this.windTimer++;
-                    if (this.windTimer>this.windInterval) {
-                        this.windTimer=0;
-                        this.windInterval=100+Math.random()*150;
-                        this.windOffset=(Math.random()-0.5)*0.8;
+                    if (this.windTimer > this.windInterval) {
+                        this.windTimer = 0;
+                        this.windInterval = 100 + Math.random() * 150;
+                        this.windOffset = (Math.random() - 0.5) * 0.8;
                     }
-                    this.phase+=this.wobbleFreq;
-                    const wobbleX=Math.sin(this.phase)*this.wobbleAmp*0.4;
-                    this.x+=this.speedX+wobbleX+this.windOffset*0.3;
-                    this.speedY+=(Math.random()-0.5)*0.02;
-                    this.speedY=Math.max(0.2, Math.min(1.2, this.speedY));
-                    this.y+=this.speedY;
-                    this.rotation+=this.rotSpeed;
-                    this.opacity+=this.opacitySpeed;
-                    if (this.opacity>0.95||this.opacity<0.3) this.opacitySpeed*=-1;
-                    if (this.y>height+50||this.x<-60||this.x>width+60) {
+                    this.phase += this.wobbleFreq;
+                    const wobbleX = Math.sin(this.phase) * this.wobbleAmp * 0.4;
+                    this.x += this.speedX + wobbleX + this.windOffset * 0.3;
+                    this.speedY += (Math.random() - 0.5) * 0.02;
+                    this.speedY = Math.max(0.2, Math.min(1.2, this.speedY));
+                    this.y += this.speedY;
+                    this.rotation += this.rotSpeed;
+                    this.opacity += this.opacitySpeed;
+                    if (this.opacity > 0.95 || this.opacity < 0.3) this.opacitySpeed *= -1;
+                    if (this.y > height + 50 || this.x < -60 || this.x > width + 60) {
                         this.reset(false);
-                        this.y=-10-Math.random()*30;
-                        this.x=Math.random()*width;
+                        this.y = -10 - Math.random() * 30;
+                        this.x = Math.random() * width;
                     }
                 }
                 draw() {
                     ctx.save();
-                    ctx.globalAlpha=this.opacity*0.85;
+                    ctx.globalAlpha = this.opacity * 0.85;
                     ctx.translate(this.x, this.y);
-                    drawPetal(ctx, this.size, this.lightColor, this.darkColor, this.rotation);
+                    drawStar(ctx, this.size, this.lightColor, this.darkColor, this.rotation);
                     ctx.restore();
                 }
             }
 
             function initCanvas() {
-                width=window.innerWidth;
-                height=window.innerHeight;
-                canvas.width=width;
-                canvas.height=height;
-                particles=[];
-                for (let i=0; i<PARTICLE_COUNT; i++) particles.push(new Particle());
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+                particles = [];
+                for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
             }
 
             function drawStars() {
                 if (!drawStars.cache) {
-                    const stars=[];
-                    for (let i=0; i<40; i++) {
-                        stars.push({x:Math.random()*width, y:Math.random()*height, r:0.5+Math.random()*1.0, a:0.1+Math.random()*0.15});
+                    const stars = [];
+                    for (let i = 0; i < 40; i++) {
+                        stars.push({ x: Math.random() * width, y: Math.random() * height, r: 0.5 + Math.random() * 1.0, a: 0.1 + Math.random() * 0.15 });
                     }
-                    drawStars.cache=stars;
+                    drawStars.cache = stars;
                 }
-                const stars=drawStars.cache;
+                const stars = drawStars.cache;
                 for (let s of stars) {
                     ctx.beginPath();
-                    ctx.arc(s.x, s.y, s.r, 0, 2*Math.PI);
-                    ctx.fillStyle=`rgba(255,240,220,${s.a})`;
+                    ctx.arc(s.x, s.y, s.r, 0, 2 * Math.PI);
+                    ctx.fillStyle = `rgba(255,240,220,${s.a})`;
                     ctx.fill();
                 }
             }
 
             function animate() {
-                ctx.clearRect(0,0,width,height);
+                ctx.clearRect(0, 0, width, height);
                 drawStars();
                 if (isParticleEnabled) {
                     for (let p of particles) { p.update(); p.draw(); }
@@ -607,28 +608,28 @@
                 toggleSwitch.classList.toggle('active', isParticleEnabled);
                 toggleStatus.textContent = isParticleEnabled ? '开' : '关';
                 if (!isParticleEnabled) {
-                    for (let p of particles) { p.y=-200-Math.random()*300; p.x=Math.random()*width; }
+                    for (let p of particles) { p.y = -200 - Math.random() * 300; p.x = Math.random() * width; }
                 } else {
-                    for (let p of particles) { p.reset(false); p.y=-10-Math.random()*30; p.x=Math.random()*width; }
+                    for (let p of particles) { p.reset(false); p.y = -10 - Math.random() * 30; p.x = Math.random() * width; }
                 }
             }
             toggleSwitch.addEventListener('click', toggleParticles);
-            toggleSwitch.addEventListener('touchstart', function(e){ e.preventDefault(); toggleParticles(e); }, {passive:false});
+            toggleSwitch.addEventListener('touchstart', function(e) { e.preventDefault(); toggleParticles(e); }, { passive: false });
             document.querySelector('.toggle-container').addEventListener('click', function(e) {
-                if (e.target===this || e.target.classList.contains('toggle-label') || e.target.classList.contains('toggle-status')) {
+                if (e.target === this || e.target.classList.contains('toggle-label') || e.target.classList.contains('toggle-status')) {
                     toggleSwitch.dispatchEvent(new Event('click'));
                 }
             });
 
             let resizeTimer;
-            window.addEventListener('resize', ()=>{
+            window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
-                resizeTimer=setTimeout(()=>{ initCanvas(); },200);
+                resizeTimer = setTimeout(() => { initCanvas(); }, 200);
             });
 
             initCanvas();
             animate();
-            console.log('🌸 真实花瓣贺卡已启动，人像请放入 portrait.png');
+            console.log('⭐ 五角星贺卡已启动，人像请放入 portrait.png');
         })();
     </script>
 </body>
