@@ -108,14 +108,15 @@
             white-space:nowrap;
         }
 
-        /* ===== 封面人像（左下角） ===== */
+        /* ===== 封面人像（左下角） - 已扩大1.5倍 ===== */
         .portrait-wrapper {
             position:absolute;
             bottom:20px;
             left:20px;
             z-index:6;
-            width:clamp(70px, 20vw, 120px);
-            height:clamp(70px, 20vw, 120px);
+            /* 原尺寸 clamp(70px, 20vw, 120px) 扩大1.5倍 */
+            width: clamp(105px, 30vw, 180px);
+            height: clamp(105px, 30vw, 180px);
             border-radius:50%;
             overflow:hidden;
             box-shadow:0 8px 24px rgba(0,0,0,0.25), 0 0 0 3px rgba(255,215,180,0.4);
@@ -287,7 +288,7 @@
             z-index:1;
         }
 
-        /* ===== 响应式 ===== */
+        /* ===== 响应式 - 人像尺寸同步扩大1.5倍 ===== */
         @media (max-width:480px) {
             body { padding:10px; }
             .card-wrapper { max-width:100%; aspect-ratio:4/5.8; }
@@ -300,9 +301,10 @@
             .toggle-switch { width:40px; height:22px; }
             .toggle-switch .toggle-knob { width:16px; height:16px; top:2px; left:2px; }
             .toggle-switch.active .toggle-knob { transform:translateX(18px); }
+            /* 扩大1.5倍：原 clamp(55px, 18vw, 90px) */
             .portrait-wrapper {
-                width:clamp(55px, 18vw, 90px);
-                height:clamp(55px, 18vw, 90px);
+                width: clamp(83px, 27vw, 135px);
+                height: clamp(83px, 27vw, 135px);
                 bottom:14px;
                 left:14px;
             }
@@ -312,9 +314,10 @@
             .front-title { font-size:1.6rem; }
             .back-greeting { font-size:1.6rem; }
             .card-back::before { font-size:10px; top:14px; }
+            /* 扩大1.5倍：原 clamp(45px, 15vw, 70px) */
             .portrait-wrapper {
-                width:clamp(45px, 15vw, 70px);
-                height:clamp(45px, 15vw, 70px);
+                width: clamp(68px, 22.5vw, 105px);
+                height: clamp(68px, 22.5vw, 105px);
                 bottom:10px;
                 left:10px;
             }
@@ -333,9 +336,9 @@
             <div class="card-face card-front">
                 <!-- 人像容器（左下角） -->
                 <div class="portrait-wrapper">
-                    <img src="x.jpg" alt="人像" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    <img src="portrait.png" alt="人像" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
                     <div class="placeholder" style="display:none;">
-                        请将图片<br />命名为 x.jpg<br />放在同目录
+                        请将图片<br />命名为 portrait.png<br />放在同目录
                     </div>
                 </div>
 
@@ -352,7 +355,7 @@
                 <div class="back-content">
                     <div class="back-greeting">✦ 愿您·常安 ✦</div>
                     <div class="back-message">
-                        老师，是您带我跨了一个"五年计划"，<br />
+                        老师，是您带我跨了整个"十四五规划"，
                         愿您每一天都明亮而温暖，<br />
                         心中常有花木向阳，<br />
                         所遇皆是温柔与晴朗。
@@ -629,7 +632,7 @@
 
             initCanvas();
             animate();
-            console.log('⭐ 五角星贺卡已启动，人像请放入 x.jpg');
+            console.log('⭐ 五角星贺卡已启动，人像已扩大1.5倍，请放入 portrait.png');
         })();
     </script>
 </body>
